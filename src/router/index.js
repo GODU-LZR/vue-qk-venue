@@ -2,15 +2,17 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from '../views/Home.vue' // 示例
+import GetVenue from '../views/GetVenue'
+import MyVenue from '../views/MyVenue'
+import VenueMap from '../views/VenueMap'
 
 Vue.use(Router)
 
 const routes = [
-  {
-    path: '/',
-    name: 'VenueHome',
-    component: Home
-  }
+  { path: '/', name: 'GetVenue', component: GetVenue},
+  { path: '/GetVenue', name: 'GetVenue', component: GetVenue},
+  { path: '/MyVenue', name: 'MyVenue', component: MyVenue},
+  { path: '/VenueMap', name: 'VenueMap', component: VenueMap}
 ]
 
 const router = new Router({
