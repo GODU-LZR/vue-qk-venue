@@ -1,4 +1,4 @@
- {
+{
   "name": "vue-qk-venue",
   "version": "0.1.0",
   "private": true,
@@ -7,6 +7,7 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "axios": "^1.6.2",
     "core-js": "^3.8.3",
     "dependencies": "^0.0.1",
     "echarts": "^5.6.0",
