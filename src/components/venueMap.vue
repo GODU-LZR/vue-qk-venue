@@ -14,31 +14,56 @@ export default {
     };
   },
   mounted() {
-    this.initMap(); // 初始化地图
+    // 确保高德地图 API 已加载
+    this.loadAmapScript().then(() => {
+      this.initMap(); // 在高德地图 API 加载完成后初始化地图
+    }).catch((error) => {
+      console.error('高德地图 API 加载失败', error);
+    });
   },
   methods: {
+    // 加载高德地图 API
+    loadAmapScript() {
+      return new Promise((resolve, reject) => {
+        if (window.AMap) {
+          resolve(window.AMap); // 如果已经加载，则直接返回
+          return;
+        }
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        // 添加callback参数
+        script.src = `https://webapi.amap.com/maps?v=2.0&key=2493f23a77c36788f2df48379a1c6f91&callback=initAMap`;
+        script.async = true;
+        script.onerror = reject;
+
+        window.initAMap = () => {
+          resolve(window.AMap); // 加载完成后执行
+        };
+
+        document.head.appendChild(script); // 动态插入 script
+      });
+    },
+
     // 初始化地图
     initMap() {
-      if (window.AMap) {
-        // 创建地图实例
-        this.map = new AMap.Map("map-container", {
+      const mapContainer = document.getElementById('map-container');
+      if (mapContainer && window.AMap) {
+        this.map = new AMap.Map(mapContainer, {
           zoom: 15, // 初始化地图层级
-          center: [110.300695, 21.151325], // 初始化地图中心点（北京天安门）
+          center: [110.300695, 21.151325], // 初始化地图中心点
         });
 
         // 加载 Geolocation 插件
         AMap.plugin("AMap.Geolocation", () => {
-          // 插件加载完成后，初始化 Geolocation
           this.geolocation = new AMap.Geolocation({
-            enableHighAccuracy: true, // 是否使用高精度定位
-            timeout: 10000, // 定位超时时间（毫秒）
+            enableHighAccuracy: true,
+            timeout: 10000,
           });
 
-          // 调用定位方法
           this.getUserLocation();
         });
       } else {
-        console.error("高德地图 API 未加载");
+        console.error("高德地图 API 或容器未加载");
       }
     },
 
@@ -46,15 +71,11 @@ export default {
     getUserLocation() {
       this.geolocation.getCurrentPosition((status, result) => {
         if (status === "complete") {
-          // 定位成功
           const { position } = result;
-          this.addMarker(position); // 添加标记
-          this.map.setCenter(position); // 将地图中心点设置为当前位置
-
-          // 开始实时定位
+          this.addMarker(position);
+          this.map.setCenter(position);
           this.startWatchingPosition();
         } else {
-          // 定位失败
           console.error("定位失败：", result);
         }
       });
@@ -64,12 +85,10 @@ export default {
     startWatchingPosition() {
       this.watchId = this.geolocation.watchPosition((status, result) => {
         if (status === "complete") {
-          // 定位成功
           const { position } = result;
-          this.updateMarker(position); // 更新标记位置
-          this.map.setCenter(position); // 将地图中心点设置为当前位置
+          this.updateMarker(position);
+          this.map.setCenter(position);
         } else {
-          // 定位失败
           console.error("实时定位失败：", result);
         }
       });
@@ -78,40 +97,37 @@ export default {
     // 添加标记
     addMarker(position) {
       if (this.marker) {
-        this.map.remove(this.marker); // 如果已有标记，先移除
+        this.map.remove(this.marker);
       }
-      // 创建新的标记
       this.marker = new AMap.Marker({
-        position: position, // 标记的位置
-        map: this.map, // 标记所属的地图实例
+        position: position,
+        map: this.map,
       });
     },
 
     // 更新标记位置
     updateMarker(position) {
       if (this.marker) {
-        this.marker.setPosition(position); // 更新标记位置
+        this.marker.setPosition(position);
       } else {
-        this.addMarker(position); // 如果标记不存在，创建新标记
+        this.addMarker(position);
       }
     },
 
-    // 停止实时定位
     stopWatchingPosition() {
       if (this.watchId) {
-        this.geolocation.clearWatch(this.watchId); // 停止实时定位
+        this.geolocation.clearWatch(this.watchId);
         this.watchId = null;
       }
     },
   },
   beforeDestroy() {
-    // 组件销毁时停止实时定位并清理资源
-    this.stopWatchingPosition(); // 停止实时定位
+    this.stopWatchingPosition();
     if (this.marker) {
-      this.map.remove(this.marker); // 移除标记
+      this.map.remove(this.marker);
     }
     if (this.map) {
-      this.map.destroy(); // 销毁地图实例
+      this.map.destroy();
     }
   },
 };
@@ -119,8 +135,8 @@ export default {
 
 <style scoped>
 #map-container {
-  width: 99%; /* 宽度自适应父容器 */
-  height: 550px; /* 设置固定高度 */
-  border: 1px solid #ccc; /* 可选：添加边框 */
+  width: 100%;
+  height: 550px;
+  border: 1px solid #ccc;
 }
 </style>
